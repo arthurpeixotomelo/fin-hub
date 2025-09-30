@@ -1,0 +1,191 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import {
+  BarChart3,
+  Server,
+  Target,
+  TrendingUp,
+  AlertTriangle,
+  Briefcase,
+  Upload,
+  Grid3X3,
+  Settings,
+  Clock,
+  HelpCircle,
+} from "lucide-react"
+import styles from "../styles/Page.module.css"
+---
+
+<PageLayout title='Hub Financeiro - Upload de Dados' >
+	<!-- <FileUpload client:load/> -->
+	  <main className={styles.main}>
+		{/* Hero Section */}
+		<div className={styles.hero}>
+		  <h1 className={styles.heroTitle}>Financial Planning & Analysis Hub</h1>
+		  <p className={styles.heroDescription}>
+			Centralized access to all your FP&A dashboards and data management tools. Streamline your workflow with
+			integrated Power BI, Tableau dashboards, and Excel data processing.
+		  </p>
+		</div>
+
+		{/* Data Management Section */}
+		<section className={styles.section}>
+			<div className={styles.sectionHeader}>
+				<Settings className={styles.sectionIcon} />
+				<h2 className={styles.sectionTitle}>Data Management</h2>
+			</div>
+
+			<div className={styles.dataManagementGrid}>
+				{/* Upload Data */}
+				<a href=`${import.meta.env.BASE_URL}/upload` >
+					<div className={styles.card}>
+					<div className={styles.cardContentCenter}>
+						<div className={`${styles.iconContainerLarge} ${styles.iconBlue}`}>
+							<Upload className={`${styles.iconLarge} ${styles.iconBlueColor}`} />
+						</div>
+						<h3 className={styles.cardTitle}>Upload Data</h3>
+						<p className={styles.cardDescriptionCenter}>Upload Excel files for processing and analysis</p>
+						<span className={styles.tag}>Supported: .xlsx, .xls, .csv</span>
+					</div>
+				</div>
+			</a>
+
+			{/* View Data */}
+			<div className={styles.card}>
+			  <div className={styles.cardContentCenter}>
+				<div className={`${styles.iconContainerLarge} ${styles.iconGreen}`}>
+				  <Grid3X3 className={`${styles.iconLarge} ${styles.iconGreenColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>View Data</h3>
+				<p className={styles.cardDescriptionCenter}>Browse and analyze uploaded datasets</p>
+				<span className={styles.tag}>Interactive data explorer</span>
+			  </div>
+			</div>
+
+			{/* Settings */}
+			<div className={styles.card}>
+			  <div className={styles.cardContentCenter}>
+				<div className={`${styles.iconContainerLarge} ${styles.iconGray}`}>
+				  <Settings className={`${styles.iconLarge} ${styles.iconGrayColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Settings</h3>
+				<p className={styles.cardDescriptionCenter}>Configure upload rules and data validation</p>
+				<span className={styles.tag}>Upload policies & schedules</span>
+			  </div>
+			</div>
+		  </div>
+		</section>
+
+		{/* Analytics Dashboards Section */}
+		<section className={styles.section}>
+		  <div className={styles.sectionHeader}>
+			<BarChart3 className={styles.sectionIcon} />
+			<h2 className={styles.sectionTitle}>Analytics Dashboards</h2>
+		  </div>
+
+		  <div className={styles.dashboardGrid}>
+			{/* Revenue Dashboard */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconBlue}`}>
+				  <BarChart3 className={`${styles.icon} ${styles.iconBlueColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Revenue Dashboard</h3>
+				<p className={styles.cardSubtitle}>Power BI</p>
+				<p className={styles.cardDescription}>Monthly revenue analysis and forecasting metrics</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 2 hours ago</span>
+				</div>
+			  </div>
+			</div>
+
+			{/* Cost Analysis */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconOrange}`}>
+				  <Server className={`${styles.icon} ${styles.iconOrangeColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Cost Analysis</h3>
+				<p className={styles.cardSubtitle}>Tableau</p>
+				<p className={styles.cardDescription}>Operational costs breakdown and variance analysis</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 4 hours ago</span>
+				</div>
+			  </div>
+			</div>
+
+			{/* Budget vs Actual */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconGreen}`}>
+				  <Target className={`${styles.icon} ${styles.iconGreenColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Budget vs Actual</h3>
+				<p className={styles.cardSubtitle}>Power BI</p>
+				<p className={styles.cardDescription}>Budget performance tracking and variance reports</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 1 hour ago</span>
+				</div>
+			  </div>
+			</div>
+
+			<!-- {/* KPI Dashboard */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconPurple}`}>
+				  <TrendingUp className={`${styles.icon} ${styles.iconPurpleColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>KPI Dashboard</h3>
+				<p className={styles.cardSubtitle}>Tableau</p>
+				<p className={styles.cardDescription}>Key performance indicators and executive summary</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 3 hours ago</span>
+				</div>
+			  </div>
+			</div>
+
+			{/* Risk Analysis */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconRed}`}>
+				  <AlertTriangle className={`${styles.icon} ${styles.iconRedColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Risk Analysis</h3>
+				<p className={styles.cardSubtitle}>Power BI</p>
+				<p className={styles.cardDescription}>Financial risk assessment and monitoring</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 6 hours ago</span>
+				</div>
+			  </div>
+			</div>
+
+			{/* Forecast Model */}
+			<div className={styles.card}>
+			  <div className={styles.cardContent}>
+				<div className={`${styles.iconContainer} ${styles.iconTeal}`}>
+				  <Briefcase className={`${styles.icon} ${styles.iconTealColor}`} />
+				</div>
+				<h3 className={styles.cardTitle}>Forecast Model</h3>
+				<p className={styles.cardSubtitle}>Tableau</p>
+				<p className={styles.cardDescription}>Financial forecasting and scenario planning</p>
+				<div className={styles.timestamp}>
+				  <Clock className={styles.timestampIcon} />
+				  <span>Updated 5 hours ago</span>
+				</div>
+			  </div>
+			</div>
+		  </div> -->
+		</section>
+	  </main>
+
+	  {/* Help Button */}
+	  <button className={styles.helpButton}>
+		<HelpCircle className={styles.helpIcon} />
+	  </button>
+</PageLayout>
+

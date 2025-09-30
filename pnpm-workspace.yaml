@@ -1,0 +1,2 @@
+patchedDependencies:
+  exceljs: patches/exceljs.patch

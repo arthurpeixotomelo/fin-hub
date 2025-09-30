@@ -1,0 +1,334 @@
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.main {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.heroTitle {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+.heroDescription {
+    color: #4b5563;
+    max-width: 48rem;
+    margin: 0 auto;
+    line-height: 1.625;
+}
+
+.section {
+    margin-bottom: 3rem;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sectionIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #374151;
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.dataManagementGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .dataManagementGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.cardContent {
+    padding: 1.5rem;
+}
+
+.cardContentCenter {
+    padding: 2rem;
+    text-align: center;
+}
+
+.iconContainer {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.iconContainerLarge {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.iconBlue {
+    background-color: #dbeafe;
+}
+
+.iconOrange {
+    background-color: #fed7aa;
+}
+
+.iconGreen {
+    background-color: #dcfce7;
+}
+
+.iconPurple {
+    background-color: #e9d5ff;
+}
+
+.iconRed {
+    background-color: #fecaca;
+}
+
+.iconTeal {
+    background-color: #ccfbf1;
+}
+
+.iconGray {
+    background-color: #f3f4f6;
+}
+
+.icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.iconLarge {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.iconBlueColor {
+    color: #2563eb;
+}
+
+.iconOrangeColor {
+    color: #ea580c;
+}
+
+.iconGreenColor {
+    color: #16a34a;
+}
+
+.iconPurpleColor {
+    color: #9333ea;
+}
+
+.iconRedColor {
+    color: #dc2626;
+}
+
+.iconTealColor {
+    color: #0d9488;
+}
+
+.iconGrayColor {
+    color: #4b5563;
+}
+
+.cardTitle {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.cardSubtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.cardDescription {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+}
+
+.cardDescriptionCenter {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+}
+
+.timestamp {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.timestampIcon {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.tag {
+    font-size: 0.75rem;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.activityList {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.activityItem {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.activityItem:last-child {
+    border-bottom: none;
+}
+
+.activityLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.activityIconContainer {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activityIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.activityTitle {
+    font-weight: 500;
+    color: #111827;
+}
+
+.activitySubtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.statusBadge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.statusSuccess {
+    color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.statusViewed {
+    color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.statusModified {
+    color: #4b5563;
+    background-color: #f9fafb;
+}
+
+.helpButton {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.helpButton:hover {
+    background-color: #1d4ed8;
+}
+
+.helpIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+}

@@ -1,0 +1,13 @@
+diff --git a/lib/stream/xlsx/worksheet-reader.js b/lib/stream/xlsx/worksheet-reader.js
+index 8cecd5c17743d1806768d805e1608ddde1879216..01869886e770a1e657996de100cf72b7b8d95f4f 100644
+--- a/lib/stream/xlsx/worksheet-reader.js
++++ b/lib/stream/xlsx/worksheet-reader.js
+@@ -19,7 +19,7 @@ class WorksheetReader extends EventEmitter {
+     this.options = options || {};
+ 
+     // and a name
+-    this.name = `Sheet${this.id}`;
++    this.name = this.workbook.model.sheets.find(sheet => sheet.id === parseInt(this.id))?.name || `Sheet${this.id}`;
+ 
+     // column definitions
+     this._columns = null;

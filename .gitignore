@@ -1,0 +1,7 @@
+dist/
+.astro/
+node_modules/
+pnpm-lock.yaml
+.env
+/src/server/db/data/*.parquet
+/src/server/db/data/*.duckdb

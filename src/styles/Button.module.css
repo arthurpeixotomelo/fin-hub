@@ -1,0 +1,98 @@
+.root {
+    --btn-bg: var(--color-bg-alt);
+    --btn-bg-hover: var(--color-border);
+    --btn-bg-active: var(--color-border-strong);
+    --btn-fg: var(--color-text);
+    --btn-border: var(--color-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+        background var(--dur-2) var(--ease-standard),
+        color var(--dur-2) var(--ease-standard),
+        border-color var(--dur-2) var(--ease-standard),
+        box-shadow var(--dur-2) var(--ease-standard);
+}
+.root:hover {
+    background: var(--btn-bg-hover);
+}
+.root:active {
+    background: var(--btn-bg-active);
+}
+.root:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+.root:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.primary {
+    --btn-bg: var(--color-accent);
+    --btn-bg-hover: var(--color-accent-hover);
+    --btn-bg-active: var(--color-accent-active);
+    --btn-fg: var(--color-accent-fg);
+    --btn-border: var(--color-accent);
+}
+.outline {
+    --btn-bg: transparent;
+    --btn-bg-hover: var(--color-bg-subtle);
+    --btn-bg-active: var(--color-bg-alt);
+}
+.danger {
+    --btn-bg: var(--color-danger);
+    --btn-bg-hover: #b91c1c;
+    --btn-bg-active: #991b1b;
+    --btn-fg: #fff;
+    --btn-border: var(--color-danger);
+}
+.ghost {
+    --btn-bg: transparent;
+    --btn-bg-hover: var(--color-bg-subtle);
+    --btn-bg-active: var(--color-bg-alt);
+    border-color: transparent;
+}
+
+.sm {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-xs);
+}
+.lg {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--text-base);
+}
+.fullWidth {
+    width: 100%;
+}
+
+.icon {
+    display: inline-flex;
+    width: 1rem;
+    height: 1rem;
+}
+.spin {
+    animation: spin 700ms linear infinite;
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading {
+    position: relative;
+}
+.loading:not(.ghost):not(.outline) {
+    filter: brightness(0.95);
+}
