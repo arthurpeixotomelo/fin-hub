@@ -7,7 +7,7 @@ import { seedMockData } from "./db/mock.ts";
 
 await initDb(seedMockData);
 
-const app = new Hono().basePath(`${import.meta.env.BASE_URL}/api`);
+const app = new Hono().basePath(`/api`);
 
 app.route("/data", data);
 app.route("/upload", upload);
