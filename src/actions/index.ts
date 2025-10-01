@@ -4,6 +4,12 @@ import { defineAction } from "astro:actions";
 import { AUTH_DB, createOrUpdateUser, getUser, withDuckDB } from "../server/db";
 import type { User } from "../server/db/schema";
 import { generateJWT, verifyJWT } from "../utils/jwt";
+import * as directZod from "zod";
+console.log("astro schema: ", typeof (z as any).ZodError);
+console.log("zod: ", typeof directZod.ZodError);
+console.log("astro schema: ", typeof (z as any).ZodError);
+console.log("astro schema: ", (directZod as any).ZodError);
+
 
 const setAuthCookie = (cookies: AstroCookies, token: string) => {
   cookies.set("auth-token", token, {
