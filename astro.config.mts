@@ -1,15 +1,19 @@
 import node from "@astrojs/node";
 import react from "@astrojs/react";
+import vercel from "@astrojs/vercel";
 import browserslist from "browserslist";
 import { browserslistToTargets } from "lightningcss";
 import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  adapter: node({
-    mode: "standalone",
+  adapter: vercel({
+    webAnalytics: {
+      enabled: true,
+      isr: true,
+    },
   }),
-  base: "/Horion",
+  // base: "/Horion",
   prefetch: {
     prefetchAll: true,
   },
