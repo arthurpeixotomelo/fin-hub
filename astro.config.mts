@@ -13,6 +13,7 @@ export default defineConfig({
       isr: true,
     },
   }),
+  output: "server",
   // base: "/Horion",
   prefetch: {
     prefetchAll: true,
