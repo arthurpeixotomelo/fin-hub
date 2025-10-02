@@ -1,5 +1,5 @@
 ---
-import PageLayout from '../layouts/PageLayout.astro'
+import Page from '../layouts/Page.astro'
 import {
   BarChart3,
   Server,
@@ -16,7 +16,7 @@ import {
 import styles from "../styles/Page.module.css"
 ---
 
-<PageLayout title='Hub Financeiro - Upload de Dados' >
+<Page title='Hub Financeiro - Upload de Dados' >
 	<!-- <FileUpload client:load/> -->
 	  <main className={styles.main}>
 		{/* Hero Section */}
@@ -187,5 +187,5 @@ import styles from "../styles/Page.module.css"
 	  <button className={styles.helpButton}>
 		<HelpCircle className={styles.helpIcon} />
 	  </button>
-</PageLayout>
+</Page>
 

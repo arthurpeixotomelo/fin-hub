@@ -1,4 +1,4 @@
-import node from "@astrojs/node";
+// import node from "@astrojs/node";
 import react from "@astrojs/react";
 import vercel from "@astrojs/vercel";
 import browserslist from "browserslist";
@@ -10,10 +10,10 @@ export default defineConfig({
   adapter: vercel({
     webAnalytics: {
       enabled: true,
-      isr: true,
     },
+    isr: true,
   }),
-  output: "server",
+  // output: "server",
   // base: "/Horion",
   prefetch: {
     prefetchAll: true,
@@ -35,6 +35,14 @@ export default defineConfig({
   },
   env: {
     schema: {
+      MOTHERDUCK_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      MOTHERDUCK_READ_SCALING_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
+      }),
       DATABRICKS_HOST: envField.string({
         context: "server",
         access: "public",

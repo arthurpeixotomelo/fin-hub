@@ -7,12 +7,12 @@ import { seedMockData } from "./db/mock.ts";
 
 await initDb(seedMockData);
 
-const app = new Hono().basePath(`/api`);
+const BASE_URL = import.meta.env.BASE_URL ? import.meta.env.BASE_URL : "";
+const app = new Hono().basePath(`${BASE_URL}/api`);
 
 app.route("/data", data);
 app.route("/upload", upload);
 app.route("/db-query", dbQuery);
-// app.use("/", (ctx) => ctx.text("Hono backend is running!"));
-// app.route('/upload-to-db', uploadToDB)
+app.use("/", async (ctx) => ctx.text("Hono backend is running!"));
 
 export default app;
