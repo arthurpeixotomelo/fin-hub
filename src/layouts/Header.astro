@@ -11,7 +11,7 @@ import styles from "../styles/Header.module.css";
             <h1 class={styles.headerTitle}>Horion Hub</h1>
         </a>
         <div id="header-center" class={styles.headerCenterSlot}>
-            <!-- Dynamic heading content mounts here via portal -->
+            <slot name="header-center" />
         </div>
         <div class={styles.headerRight}>
             <div class={styles.avatar}>JD</div>

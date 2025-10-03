@@ -17,7 +17,9 @@ const { title } = Astro.props
     <title>{title}</title>
   </head>
   <body>
-    <Header />
+    <Header>
+      <slot name="header-center" slot="header-center" />
+    </Header>
     <slot />
     <AuthModal client:load />
   </body>

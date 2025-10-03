@@ -51,16 +51,18 @@ import styles from "../styles/Page.module.css"
 			</a>
 
 			{/* View Data */}
-			<div className={styles.card}>
-			  <div className={styles.cardContentCenter}>
-				<div className={`${styles.iconContainerLarge} ${styles.iconGreen}`}>
-				  <Grid3X3 className={`${styles.iconLarge} ${styles.iconGreenColor}`} />
+			<a href=`${import.meta.env.BASE_URL}/view` >
+				<div className={styles.card}>
+					<div className={styles.cardContentCenter}>
+						<div className={`${styles.iconContainerLarge} ${styles.iconGreen}`}>
+							<Grid3X3 className={`${styles.iconLarge} ${styles.iconGreenColor}`} />
+						</div>
+						<h3 className={styles.cardTitle}>View Data</h3>
+						<p className={styles.cardDescriptionCenter}>Browse and analyze uploaded datasets</p>
+						<span className={styles.tag}>Interactive data explorer</span>
+					</div>
 				</div>
-				<h3 className={styles.cardTitle}>View Data</h3>
-				<p className={styles.cardDescriptionCenter}>Browse and analyze uploaded datasets</p>
-				<span className={styles.tag}>Interactive data explorer</span>
-			  </div>
-			</div>
+			</a>
 
 			{/* Settings */}
 			<div className={styles.card}>

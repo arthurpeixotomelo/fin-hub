@@ -1,10 +1,10 @@
 ---
-import Page from '../layouts/Page.astro'
-import FileUpload from '../components/FileUpload/FileUpload'
+import Page from '../layouts/Page.astro';
+import UploadHeadingIsland from '../components/UploadHeadingIsland.tsx';
+import FileUpload from '@components/FileUpload';
 ---
 
-<Page title='Prévia - Upload'>
-    <main>
-        <FileUpload client:load/>
-    </main>
+<Page title="Upload Preview">
+  <UploadHeadingIsland slot="header-center" client:load />
+  <FileUpload client:load />
 </Page>

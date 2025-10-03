@@ -1,25 +1,93 @@
 import DataTable from "../DataTable.tsx";
-import { useUpload } from "./UploadState.tsx";
 import { useQuery } from "@tanstack/react-query";
 import type { ChangeEvent, DragEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { formatFileSize } from "../../utils/helper.ts";
-import type { Team } from "../../server/db/schema.ts";
-import { Dialog, Progress, Select } from "radix-ui";
+import { Dialog, Progress } from "radix-ui";
 import Button from "../Atoms/Button.tsx";
-import styles from "../../styles/UploadFlow.module.css";
+import styles from "@styles/UploadFlow.module.css";
+import { useUploadStore } from "@stores/upload.ts";
+import { useTeamStore } from "@stores/team.ts";
+import type { ErrorSeverity } from "@utils/errors";
 
-export default function UploadFlow({ selectedTeam }: {
-    selectedTeam: string;
-}): ReactNode {
-    const {
-        fileName,
-        parquetData,
-        isLoadingData,
-        dataError,
-        status,
-        error: uploadError,
-    } = useUpload();
+export default function UploadFlow(): ReactNode {
+    const fileName = useUploadStore((s) => s.fileName);
+    const status = useUploadStore((s) => s.status);
+    const uploadError = useUploadStore((s) => s.error);
+    const errorSeverity = useUploadStore((s) => s.errorSeverity);
+    const setProgress = useUploadStore((s) => s.setProgress);
+    const jobId = useUploadStore((s) => s.jobId);
+    const teams = useTeamStore((s) => s.teams);
+    const currentTeamId = useTeamStore((s) => s.currentTeamId);
+    const setTeam = useTeamStore((s) => s.setTeam);
+    const teamStatus = useTeamStore((s) => s.status);
+    const fetchTeams = useTeamStore((s) => s.fetchTeams);
+    const effectiveTeam = teams.find((t) => t.id === currentTeamId)?.name ?? "";
+
+    console.log('[UploadFlow] RENDER - teamStatus:', teamStatus, 'teams:', teams.length, 'currentTeamId:', currentTeamId, 'uploadStatus:', status);
+
+    // Fetch teams on mount if needed
+    // useEffect(() => {
+    //     console.log('[UploadFlow] Effect 1 - checking teamStatus:', teamStatus, 'teams.length:', teams.length);
+    //     if (teamStatus === "idle" || (teams.length === 0 && teamStatus !== "loading")) {
+    //         console.log('[UploadFlow] Triggering fetchTeams...');
+    //         fetchTeams();
+    //     }
+    // }, [teamStatus, teams.length, fetchTeams]);
+
+    // Ensure a team is selected once teams are available
+    // useEffect(() => {
+    //     console.log('[UploadFlow] Effect 2 - teams:', teams.length, 'currentTeamId:', currentTeamId);
+    //     if (teams.length > 0 && currentTeamId == null) {
+    //         console.log('[UploadFlow] Auto-selecting first team:', teams[0].id);
+    //         setTeam(teams[0].id);
+    //     }
+    // }, [teams, currentTeamId, setTeam]);
+
+    const parquetQuery = useQuery({
+        queryKey: ["parquet-data", fileName],
+        enabled: !!fileName,
+        queryFn: async () => {
+            if (!fileName) return [];
+            const res = await fetch(
+                `${import.meta.env.BASE_URL}/api/data/temp/${
+                    encodeURIComponent(fileName)
+                }`,
+            );
+            if (!res.ok) throw new Error("Failed to fetch data");
+            return await res.json() as Record<string, unknown>[];
+        },
+    });
+
+    // Progress polling
+    useQuery<
+        {
+            progress: number;
+            status: "idle" | "processing" | "done" | "error";
+            error?: string;
+            errorSeverity?: ErrorSeverity;
+        }
+    >({
+        queryKey: ["upload-progress", jobId],
+        enabled: !!jobId,
+        refetchInterval: (query) => {
+            const val = query.state.data;
+            return val?.status === "processing" ? 250 : false;
+        },
+        queryFn: async () => {
+            if (!jobId) return { progress: 0, status: "idle" as const };
+            const r = await fetch(`/api/upload/progress/${jobId}`);
+            if (!r.ok) throw new Error("Failed to fetch progress");
+            const data = await r.json() as {
+                progress: number;
+                status: "idle" | "processing" | "done" | "error";
+                error?: string;
+                errorSeverity?: ErrorSeverity;
+            };
+            setProgress(data);
+            return data;
+        },
+    });
 
     return (
         <div className={styles.uploadFlowRoot}>
@@ -28,14 +96,14 @@ export default function UploadFlow({ selectedTeam }: {
                 <ProgressBar />
                 {fileName && (
                     <DataTable
-                        rows={parquetData}
-                        loading={isLoadingData}
-                        error={dataError}
+                        rows={parquetQuery.data || []}
+                        loading={parquetQuery.isLoading}
+                        error={parquetQuery.error}
                     />
                 )}
-                <Actions teamName={selectedTeam} />
+                <Actions teamName={effectiveTeam} teamId={currentTeamId ?? null} />
                 {status === "error" && uploadError && (
-                    <ErrorModal errorMessage={uploadError} />
+                    <ErrorModal errorMessage={uploadError} severity={errorSeverity ?? 'critical'} />
                 )}
             </section>
         </div>
@@ -43,7 +111,11 @@ export default function UploadFlow({ selectedTeam }: {
 }
 
 export function FileInput(): ReactNode {
-    const { file, isUploading, uploadFile } = useUpload();
+    const file = useUploadStore((s) => s.file);
+    const start = useUploadStore((s) => s.start);
+    const isUploading = useUploadStore((s) =>
+        s.status === "processing" && s.progress < 100
+    );
     const [isDragOver, setIsDragOver] = useState(false);
 
     const isValidXlsx = (f: File) => (
@@ -59,7 +131,7 @@ export function FileInput(): ReactNode {
             alert("Invalid file format. Please select an .xlsx file.");
             return;
         }
-        uploadFile(selected);
+        start(selected);
     };
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -83,7 +155,7 @@ export function FileInput(): ReactNode {
                 alert("Invalid file format. Please select an .xlsx file.");
                 return;
             }
-            uploadFile(dropped);
+            start(dropped);
         }
     };
 
@@ -151,79 +223,9 @@ export function FileInput(): ReactNode {
     );
 }
 
-async function fetchTeams(): Promise<Team[]> {
-    const res = await fetch(`${import.meta.env.BASE_URL}/api/data/teams`);
-    if (!res.ok) {
-        throw new Error("Failed to fetch teams");
-    }
-    return res.json();
-}
-
-export function TeamSelector(
-    { selectedTeam, onTeamSelect }: {
-        selectedTeam: string;
-        onTeamSelect: (team: string) => void;
-    },
-): ReactNode {
-    const { data: teams, isLoading, isError } = useQuery({
-        queryKey: ["teams"],
-        queryFn: fetchTeams,
-    });
-
-    useEffect(() => {
-        if (teams && teams.length > 0 && !selectedTeam) {
-            onTeamSelect(teams[0].name);
-        }
-    }, [teams, selectedTeam, onTeamSelect]);
-
-    if (isLoading) {
-        return <p>Loading teams...</p>;
-    }
-
-    if (isError) {
-        return <p>Error loading teams.</p>;
-    }
-
-    return (
-        <Select.Root
-            value={selectedTeam}
-            onValueChange={onTeamSelect}
-            disabled={!teams || teams.length === 0}
-        >
-            <Select.Trigger
-                className={styles.teamSelectTrigger}
-                aria-label="Team"
-            >
-                <Select.Value />
-            </Select.Trigger>
-            <Select.Portal>
-                <Select.Content
-                    className={styles.teamSelectContent}
-                    position="popper"
-                >
-                    <Select.Viewport
-                        className={styles.teamSelectViewport}
-                    >
-                        {teams && teams.map((team) => (
-                            <Select.Item
-                                key={team.id}
-                                value={team.name}
-                                className={styles.teamSelectItem}
-                            >
-                                <Select.ItemText>
-                                    {team.name}
-                                </Select.ItemText>
-                            </Select.Item>
-                        ))}
-                    </Select.Viewport>
-                </Select.Content>
-            </Select.Portal>
-        </Select.Root>
-    );
-}
-
 export function ProgressBar(): ReactNode {
-    const { progress, status } = useUpload();
+    const progress = useUploadStore((s) => s.progress);
+    const status = useUploadStore((s) => s.status);
     const isProcessing = status === "processing";
 
     return (
@@ -248,15 +250,23 @@ export function ProgressBar(): ReactNode {
     );
 }
 
-export function Actions({ teamName }: { teamName: string }): ReactNode {
-    const { file, status, resetUpload, finalizeUpload, isFinalizing } =
-        useUpload();
-    const canSubmit = status === "done";
+export function Actions({ teamName, teamId }: { teamName: string; teamId: number | null }): ReactNode {
+    const file = useUploadStore((s) => s.file);
+    const status = useUploadStore((s) => s.status);
+    const reset = useUploadStore((s) => s.reset);
+    const finalize = useUploadStore((s) => s.finalize);
+    const isFinalizing = useUploadStore((s) => s.isFinalizing);
+    // Removed team requirement for now - allow submit when processing is done
+    const canSubmit = status === "done"; // && !!teamId;
+    
+    console.log('[Actions] RENDER - status:', status, 'teamId:', teamId, 'canSubmit:', canSubmit, 'file:', !!file);
+    
+    useEffect(() => {
+        console.log('[Actions] Effect - status changed to:', status, 'teamId:', teamId);
+    }, [status, teamId]);
 
     const handleFinalize = () => {
-        if (canSubmit) {
-            finalizeUpload(teamName);
-        }
+        if (canSubmit) finalize(teamId, teamName);
     };
 
     return (
@@ -265,46 +275,84 @@ export function Actions({ teamName }: { teamName: string }): ReactNode {
                 type="button"
                 variant="outline"
                 disabled={!file}
-                onClick={resetUpload}
+                onClick={reset}
             >
                 Cancel
             </Button>
-            <Button
-                type="button"
-                variant="primary"
-                loading={isFinalizing}
-                disabled={!canSubmit || isFinalizing}
-                onClick={handleFinalize}
-            >
-                {isFinalizing ? "Submitting..." : "Submit"}
-            </Button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <Button
+                    type="button"
+                    variant="primary"
+                    loading={isFinalizing}
+                    disabled={!canSubmit || isFinalizing}
+                    onClick={handleFinalize}
+                    title={!teamId ? 'Select a team first' : undefined}
+                >
+                    {isFinalizing ? "Submitting..." : "Submit"}
+                </Button>
+                {/* Temporarily disabled team requirement message */}
+                {/* {!teamId && status === 'done' && (
+                    <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted, #666)' }}>
+                        Select a team to enable submit
+                    </span>
+                )} */}
+            </div>
         </div>
     );
 }
 
 export function ErrorModal(
-    { errorMessage }: { errorMessage: string },
+    { errorMessage, severity = 'critical' }: { errorMessage: string; severity?: ErrorSeverity },
 ): ReactNode {
-    const { resetUpload } = useUpload();
+    const reset = useUploadStore((s) => s.reset);
+
+    const severityConfig = {
+        critical: {
+            title: 'Upload Failed',
+            color: '#ef4444',
+            icon: '🚨'
+        },
+        warning: {
+            title: 'Upload Warning',
+            color: '#f59e0b',
+            icon: '⚠️'
+        }
+    };
+
+    const config = severityConfig[severity];
 
     return (
         <Dialog.Root open>
             <Dialog.Portal>
                 <Dialog.Overlay className={styles.dialogOverlay} />
                 <Dialog.Content className={styles.dialogContent}>
-                    <Dialog.Title className={styles.dialogTitle}>
-                        Upload Failed
-                    </Dialog.Title>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>{config.icon}</span>
+                        <Dialog.Title className={styles.dialogTitle} style={{ color: config.color, margin: 0 }}>
+                            {config.title}
+                        </Dialog.Title>
+                    </div>
                     <Dialog.Description className={styles.dialogDescription}>
                         The file could not be processed due to the following
-                        error:
+                        {severity === 'critical' ? ' error' : ' issue'}:
                     </Dialog.Description>
-                    <pre className={styles.dialogErrorText}>{errorMessage}</pre>
+                    <div 
+                        className={styles.dialogErrorText}
+                        style={{ 
+                            borderLeft: `4px solid ${config.color}`,
+                            paddingLeft: '1rem',
+                            marginTop: '1rem'
+                        }}
+                    >
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {errorMessage}
+                        </pre>
+                    </div>
                     <div className={styles.dialogActions}>
                         <Dialog.Close asChild>
                             <button
                                 type="button"
-                                onClick={resetUpload}
+                                onClick={reset}
                                 className={styles.dialogButton}
                             >
                                 Try Again

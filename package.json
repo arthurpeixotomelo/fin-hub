@@ -9,10 +9,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
     "@astrojs/node": "^9.4.4",
     "@astrojs/react": "^4.4.0",
-    "@astrojs/vercel": "8.2.8",
     "@duckdb/node-api": "1.4.0-r.1",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-table": "^8.21.3",
@@ -26,16 +24,16 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "remeda": "^2.32.0",
-    "zod": "^4.1.11"
+    "zod": "^4.1.11",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@astrojs/ts-plugin": "^1.10.4",
+    "@astrojs/check": "^0.9.4",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "browserslist": "4.26.3",
     "lightningcss": "^1.30.2",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.17.1"
+  "packageManager": "pnpm@10.18.0"
 }

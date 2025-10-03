@@ -6,15 +6,13 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "plugins": [
-      {
-        "name": "@astrojs/ts-plugin"
-      }
-    ],
     "paths": {
       "@db": ["src/server/db/index.ts"],
       "@db/*": ["src/server/db/*"],
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@styles/*": ["src/styles/*"],
+      "@stores/*": ["src/stores/*"],
+      "@utils/*": ["src/utils/*"]
     }
   }
 }
