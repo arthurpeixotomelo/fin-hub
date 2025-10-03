@@ -1,94 +1,182 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
-import { resolveDbPath } from "../utils/file";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { DuckDBInstance } from "@duckdb/node-api";
-import type { Preview, Team, User } from "./schema";
 import type { DuckDBConnection } from "@duckdb/node-api";
-import { CREATE_TEAMS_TABLE, CREATE_USERS_TABLE } from "./schema";
+import type { Preview, Team, User } from "./schema.ts";
+import {
+    CREATE_PREVIEW_TABLE,
+    CREATE_TEAMS_TABLE,
+    CREATE_USERS_TABLE,
+} from "./schema.ts";
+import TEAMS from "./data/teams.json" with { type: "json" };
+import USERS from "./data/users.json" with { type: "json" };
 
-export const AUTH_DB = "auth.duckdb";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export function resolveDbPath(fileName?: string): string {
+    const dbPath = resolve(__dirname, "../db/data");
+    return fileName ? resolve(dbPath, fileName) : dbPath;
+}
 
 export async function withDuckDB<T>(
     fn: (conn: DuckDBConnection) => Promise<T> | T,
-    fileName?: string,
+    inMemory?: boolean,
 ): Promise<T> {
-    const filePath = fileName ? resolveDbPath(fileName) : ":memory:";
+    const filePath = inMemory ? ":memory:" : resolveDbPath("db.duckdb");
     const instance = await DuckDBInstance.fromCache(filePath);
     const conn = await instance.connect();
     try {
         return await fn(conn);
     } catch (err) {
-        console.error("DuckDB error", { fileName, err });
+        console.error("DuckDB error", { filePath, err });
         throw err;
     } finally {
         conn.disconnectSync();
     }
 }
 
-export async function initDb(
-    mockData?: (conn: DuckDBConnection) => Promise<void>,
-) {
-    await withDuckDB(
-        async (conn) => {
-            await conn.run(CREATE_TEAMS_TABLE);
-            await conn.run(CREATE_USERS_TABLE);
-            if (mockData) {
-                await mockData(conn);
+export async function initDb(mockData?: boolean) {
+    await withDuckDB(async (conn) => {
+        await conn.run(CREATE_TEAMS_TABLE);
+        await conn.run(CREATE_USERS_TABLE);
+        await conn.run(CREATE_PREVIEW_TABLE);
+        if (mockData) {
+            for (const team of TEAMS) {
+                await createOrUpdateTeam(conn, {
+                    id: team.id,
+                    name: team.name,
+                } as Team);
             }
-        },
-        AUTH_DB,
-    );
+            for (const user of USERS as Array<Record<string, unknown>>) {
+                const mapped: User = {
+                    id: String(user.id),
+                    email: String(user.email),
+                    name: String(user.name),
+                    teamId: Number(user.team_id),
+                    role: (user.role as User["role"]) || "user",
+                };
+                await createOrUpdateUser(conn, mapped);
+            }
+        }
+    });
 }
 
 export async function getAllTeams(conn: DuckDBConnection): Promise<Team[]> {
-    const result = await conn.run("SELECT * FROM teams");
-    return await result.getRowObjectsJS() as Team[];
+    const result = await conn.run("SELECT id, name, updated_at FROM teams");
+    const rows = await result.getRowObjectsJS() as unknown as Array<
+        { id: number; name: string; updated_at?: string }
+    >;
+    return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        updatedAt: r.updated_at ? new Date(r.updated_at) : undefined,
+    }));
 }
 
 export async function getUsersByTeam(
     conn: DuckDBConnection,
     teamId: string,
 ): Promise<User[]> {
-    const result = await conn.run("SELECT * FROM users WHERE team_id = ?", [
-        teamId,
-    ]);
-    return await result.getRowObjectsJS() as User[];
+    const result = await conn.run(
+        "SELECT id, email, name, team_id, role, updated_at FROM users WHERE team_id = ?",
+        [teamId],
+    );
+    const rows = await result.getRowObjectsJS() as unknown as Array<
+        {
+            id: string;
+            email: string;
+            name: string;
+            team_id: number;
+            role: string;
+            updated_at?: string;
+        }
+    >;
+    return rows.map((r) => ({
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        teamId: r.team_id,
+        role: r.role as User["role"],
+        updatedAt: r.updated_at ? new Date(r.updated_at) : undefined,
+    }));
 }
 
 export async function getPreviewData(
     conn: DuckDBConnection,
 ): Promise<Preview[]> {
-    const result = await conn.run("SELECT * FROM preview");
-    return await result.getRowObjectsJS() as Preview[];
+    const result = await conn.run(
+        "SELECT cod, itens_periodo, segmentos, file_paths, sheet_name, team_name, dat_ref, value, version, updated_at FROM preview",
+    );
+    const rows = await result.getRowObjectsJS() as unknown as Array<
+        {
+            cod: number;
+            itens_periodo: string;
+            segmentos: string;
+            file_paths: string;
+            sheet_name: string;
+            team_name: string;
+            dat_ref: string;
+            value: number;
+            version: number;
+            updated_at?: string;
+        }
+    >;
+    return rows.map((r) => ({
+        ...r,
+        dat_ref: new Date(r.dat_ref),
+        updated_at: r.updated_at ? new Date(r.updated_at) : undefined,
+    }));
 }
 
 export async function getUser(
     conn: DuckDBConnection,
     userId: string,
 ): Promise<User | null> {
-    const result = await conn.run("SELECT * FROM users WHERE id = ?", [userId]);
-    return await result.getRowObjectsJS() as User[];
-}
-
-export async function createOrUpdateUser(conn: DuckDBConnection, user: User) {
     const result = await conn.run(
-        `INSERT INTO users (id, email, name, team_id, role) VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT (id) DO UPDATE SET 
-            email=excluded.email, name=excluded.name, 
-            team_id=excluded.team_id, role=excluded.role
-        `,
-        [user.id, user.email, user.name, user.teamId, user.role],
+        "SELECT id, email, name, team_id, role FROM users WHERE id = ?",
+        [userId],
     );
-    return await result.getRowObjectsJS() as User[];
+    const rows = await result.getRowObjectsJS() as Array<{
+        id: string;
+        email: string;
+        name: string;
+        team_id: number;
+        role: string;
+    }>;
+    const r = rows[0];
+    if (!r) return null;
+    return {
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        teamId: r.team_id,
+        role: r.role as User["role"],
+    };
 }
 
-export async function createOrUpdateTeam(conn: DuckDBConnection, team: Team) {
-    const result = await conn.run(
+export async function createOrUpdateUser(
+    conn: DuckDBConnection,
+    user: User,
+): Promise<void> {
+    await conn.run(
+        `INSERT INTO users (id, email, name, team_id, role) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (id) DO UPDATE SET 
+                email=excluded.email, name=excluded.name, 
+                team_id=excluded.team_id, role=excluded.role`,
+        [user.id, user.email, user.name, user.teamId ?? null, user.role],
+    );
+}
+
+export async function createOrUpdateTeam(
+    conn: DuckDBConnection,
+    team: Team,
+): Promise<void> {
+    await conn.run(
         `INSERT INTO teams (id, name) VALUES (?, ?)
-        ON CONFLICT (id) DO UPDATE SET name=excluded.name`,
+            ON CONFLICT (id) DO UPDATE SET name=excluded.name`,
         [team.id, team.name],
     );
-    return await result.getRowObjectsJS() as Team[];
 }
 
 export function getStageTableDDL(tableName: string, headers: string[]) {

@@ -1,13 +1,12 @@
 import { Hono } from "hono";
-import { AUTH_DB, getAllTeams, withDuckDB } from "../db/index.ts";
-import { resolveDbPath } from "../utils/file.ts";
+import { getAllTeams, resolveDbPath, withDuckDB } from "../db/index.ts";
 
 const data = new Hono();
 
 data.get("/teams", async (ctx) => {
     const teams = await withDuckDB(async (conn) => {
         return await getAllTeams(conn);
-    }, AUTH_DB);
+    });
     return ctx.json(teams);
 });
 

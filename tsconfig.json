@@ -1,7 +1,8 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "node_modules"], 
+  "exclude": ["dist", "node_modules", "src/server/db/data"],
+
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react",
@@ -9,6 +10,11 @@
       {
         "name": "@astrojs/ts-plugin"
       }
-    ]
+    ],
+    "paths": {
+      "@db": ["src/server/db/index.ts"],
+      "@db/*": ["src/server/db/*"],
+      "@components/*": ["src/components/*"]
+    }
   }
 }

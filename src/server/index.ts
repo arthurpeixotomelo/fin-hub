@@ -3,12 +3,10 @@ import data from "./routes/data";
 import upload from "./routes/upload";
 import dbQuery from "./routes/dbQuery";
 import { initDb } from "./db/index.ts";
-import { seedMockData } from "./db/mock.ts";
 
-await initDb(seedMockData);
+await initDb(import.meta.env.SEED_MOCK === "true");
 
-const BASE_URL = import.meta.env.BASE_URL ? import.meta.env.BASE_URL : "";
-const app = new Hono().basePath(`${BASE_URL}/api`);
+const app = new Hono().basePath(`${import.meta.env.BASE_URL ?? ""}/api`);
 
 app.route("/data", data);
 app.route("/upload", upload);

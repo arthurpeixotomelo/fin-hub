@@ -1,47 +1,20 @@
-// import node from "@astrojs/node";
+import node from "@astrojs/node";
 import react from "@astrojs/react";
-import vercel from "@astrojs/vercel";
 import browserslist from "browserslist";
 import { browserslistToTargets } from "lightningcss";
 import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  adapter: vercel({
-    webAnalytics: {
-      enabled: true,
-    },
-    isr: true,
+  adapter: node({
+    mode: "standalone",
   }),
-  // output: "server",
-  // base: "/Horion",
-  prefetch: {
-    prefetchAll: true,
-  },
-  experimental: {
-    clientPrerender: true,
-  },
-  integrations: [react()],
-  vite: {
-    css: {
-      transformer: "lightningcss",
-      lightningcss: {
-        targets: browserslistToTargets(browserslist(">= 1.5%")),
-      },
-    },
-    build: {
-      cssMinify: "lightningcss",
-    },
-  },
+  base: "/Horion",
   env: {
     schema: {
-      MOTHERDUCK_TOKEN: envField.string({
+      SEED_MOCK: envField.string({
         context: "server",
-        access: "secret",
-      }),
-      MOTHERDUCK_READ_SCALING_TOKEN: envField.string({
-        context: "server",
-        access: "secret",
+        access: "public",
       }),
       DATABRICKS_HOST: envField.string({
         context: "server",
@@ -60,6 +33,37 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
+    },
+  },
+  experimental: {
+    clientPrerender: true,
+  },
+  integrations: [react()],
+  prefetch: {
+    prefetchAll: true,
+  },
+  vite: {
+    build: {
+      cssMinify: "lightningcss",
+    },
+    css: {
+      transformer: "lightningcss",
+      lightningcss: {
+        targets: browserslistToTargets(browserslist(">= 1.5%")),
+      },
+    },
+    optimizeDeps: {
+      include: ["react", "react-dom"],
+    },
+    server: {
+      watch: {
+        ignored: [
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/dist/**",
+          "**/db/data/**",
+        ],
+      },
     },
   },
 });

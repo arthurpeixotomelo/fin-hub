@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,  
   email TEXT NOT NULL,
   name TEXT NOT NULL,
-  team_id SMALLINT DEFAULT NULL REFERENCES teams(id),
+  team_id SMALLINT NOT NULL REFERENCES teams(id),
   role TEXT DEFAULT 'user',                 -- 'admin' | 'user'
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -13,7 +13,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  teamId: number | null;
+  teamId: number;
   role: "admin" | "user";
   updatedAt?: Date;
 }

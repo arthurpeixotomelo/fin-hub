@@ -1,15 +1,9 @@
-import type { AstroCookies } from "astro";
 import { z } from "astro:schema";
+import type { AstroCookies } from "astro";
 import { defineAction } from "astro:actions";
-import { AUTH_DB, createOrUpdateUser, getUser, withDuckDB } from "../server/db";
-import type { User } from "../server/db/schema";
+import type { User } from "@db/schema";
 import { generateJWT, verifyJWT } from "../utils/jwt";
-import * as directZod from "zod";
-console.log("astro schema: ", typeof (z as any).ZodError);
-console.log("zod: ", typeof directZod.ZodError);
-console.log("astro schema: ", typeof (z as any).ZodError);
-console.log("astro schema: ", (directZod as any).ZodError);
-
+import { createOrUpdateUser, getUser, withDuckDB } from "@db";
 
 const setAuthCookie = (cookies: AstroCookies, token: string) => {
   cookies.set("auth-token", token, {
@@ -28,13 +22,11 @@ export const server = {
       userId: z.string().min(1).max(9),
     }),
     handler: async ({ userId }, { cookies }) => {
-      const users = await withDuckDB(async (conn) => {
+      const user = await withDuckDB(async (conn) => {
         return await getUser(conn, userId.toLowerCase().trim());
-      }, AUTH_DB);
+      });
 
-      const authenticatedUser = users?.[0];
-
-      if (!authenticatedUser) {
+      if (!user) {
         return {
           success: false,
           error: "User not found. Please complete registration.",
@@ -43,11 +35,11 @@ export const server = {
         };
       }
 
-      const token = await generateJWT(authenticatedUser);
+      const token = await generateJWT(user);
 
       setAuthCookie(cookies, token);
 
-      return { success: true, user: authenticatedUser, token };
+      return { success: true, user: user, token };
     },
   }),
 
@@ -61,7 +53,7 @@ export const server = {
     }),
     handler: async (userData: User, { cookies }) => {
       try {
-        const users = await withDuckDB(
+        const user = await withDuckDB(
           async (conn) => {
             return await createOrUpdateUser(conn, {
               id: userData.id.trim(),
@@ -70,20 +62,17 @@ export const server = {
               team: userData.team.trim(),
             });
           },
-          AUTH_DB,
         );
 
-        const createdUser = users?.[0];
-
-        if (!createdUser) {
+        if (!user) {
           throw new Error("User creation failed");
         }
 
-        const token = await generateJWT(createdUser);
+        const token = await generateJWT(user);
 
         setAuthCookie(cookies, token);
 
-        return { success: true, user: createdUser, token };
+        return { success: true, user: user, token };
       } catch (_err) {
         return {
           success: false,
