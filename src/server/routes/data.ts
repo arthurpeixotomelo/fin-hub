@@ -4,8 +4,12 @@ import { getAllTeams, resolveDbPath, withDuckDB } from "../db/index.ts";
 const data = new Hono();
 
 data.get("/teams", async (ctx) => {
-    const teams = await withDuckDB(async (conn) => await getAllTeams(conn));
-    return ctx.json({ teams });
+    try {
+        const teams = await withDuckDB(async (conn) => await getAllTeams(conn));
+        return ctx.json(teams);
+    } catch (e) {
+        return ctx.json({ error: (e as Error).message }, 500);
+    }
 });
 
 // Get available versions for a team

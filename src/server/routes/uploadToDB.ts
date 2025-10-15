@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Buffer } from 'node:buffer';
 import { getTeamParquetPath } from '../db/parquetManager';
 import { Hono } from 'hono';
-import { databricksAPI } from '../utils/databricks';
+import { databricksAPI } from '../../utils/databricks';
 
 const CHUNK_SIZE = 1024 * 1024;
 

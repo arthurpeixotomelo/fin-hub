@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { existsSync, mkdirSync } from "node:fs";
 import { DuckDBInstance } from "@duckdb/node-api";
 import type { DuckDBConnection } from "@duckdb/node-api";
 import type { Preview, Team, User } from "./schema.ts";
@@ -15,7 +16,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export function resolveDbPath(fileName?: string): string {
-    const dbPath = resolve(__dirname, "../db/data");
+    const dbPath = resolve(__dirname, "data");
+    
+    if (!existsSync(dbPath)) {
+        mkdirSync(dbPath, { recursive: true });
+    }
+
     return fileName ? resolve(dbPath, fileName) : dbPath;
 }
 

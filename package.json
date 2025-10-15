@@ -6,7 +6,8 @@
     "astro": "astro",
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "start": "node --import=dotenv/config --env-file=.env dist/server/entry.mjs",
+    "prod": "pnpm build && pnpm start"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.4",
@@ -16,6 +17,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@trpc/server": "^11.6.0",
     "astro": "^5.14.1",
+    "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "hono": "^4.9.9",
     "jose": "^6.1.0",

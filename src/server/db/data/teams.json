@@ -1,14 +1,33 @@
 [
-    {
-        "id": 0,
-        "name": "CFO"
-    },
-    {
-        "id": 1,
-        "name": "Creditos"
-    },
-    {
-        "id": 2,
-        "name": "Investimentos"
-    }
+  { "id": 0, "name": "CFO", "file_paths": "MODELO_PREVIA_GN.xlsx" },
+  { "id": 1, "name": "Ajustes", "file_paths": "MODELO_PREVIA_AJUSTES.xlsx" },
+  { "id": 2, "name": "Acordos", "file_paths": "MODELO_PREVIA_ACORDOS.xlsx" },
+  { "id": 3, "name": "Adquirência", "file_paths": "MODELO_PREVIA_ADQUIRENCIA.xlsx" },
+  { "id": 4, "name": "Agro", "file_paths": "MODELO_PREVIA_AGRO.xlsx" },
+  { "id": 5, "name": "Cambio", "file_paths": "MODELO_PREVIA_CAMBIO.xlsx" },
+  { "id": 6, "name": "Capitalização", "file_paths": "MODELO_PREVIA_CAPITALIZACAO.xlsx" },
+  { "id": 7, "name": "Cash PJ", "file_paths": "MODELO_PREVIA_SEGMENTO_PJ_CASH.xlsx" },
+  { "id": 8, "name": "Cartões", "file_paths": "MODELO_PREVIA_CARTOES.xlsx" },
+  { "id": 9, "name": "Cheque Especial", "file_paths": "MODELO_PREVIA_CHESP.xlsx" },
+  { "id": 10, "name": "Comex PF", "file_paths": "MODELO_PREVIA_COMEX_PF.xlsx" },
+  { "id": 11, "name": "Comex PJ", "file_paths": "MODELO_PREVIA_COMEX_PJ.xlsx" },
+  { "id": 12, "name": "Consignado", "file_paths": "MODELO_PREVIA_CONSIGNADO.xlsx" },
+  { "id": 13, "name": "Consórcio", "file_paths": "MODELO_PREVIA_CONSORCIO.xlsx" },
+  { "id": 14, "name": "Crédito PF", "file_paths": "MODELO_PREVIA_CREDITOS_PF.xlsx" },
+  { "id": 15, "name": "Crédito PJ", "file_paths": "MODELO_PREVIA_CREDITOS_PJ.xlsx" },
+  { "id": 16, "name": "Crédito Pessoal", "file_paths": "MODELO_PREVIA_CP.xlsx" },
+  { "id": 17, "name": "Crédito Pessoal - Financeira", "file_paths": "MODELO_PREVIA_CP_FINAN.xlsx" },
+  { "id": 18, "name": "Creditos PF - Prospera", "file_paths": "MODELO_PREVIA_CREDITOS_PF_PROSPERA.xlsx" },
+  { "id": 19, "name": "Esfera", "file_paths": "MODELO_PREVIA_ESFERA.xlsx" },
+  { "id": 20, "name": "Float", "file_paths": "MODELO_PREVIA_FLOAT.xlsx" },
+  { "id": 21, "name": "Folha de Pagamento", "file_paths": "MODELO_PREVIA_FOPA.xlsx" },
+  { "id": 22, "name": "Gastos", "file_paths": "MODELO_PREVIA_REDUTORAS_GASTOS.xlsx" },
+  { "id": 23, "name": "HelpS", "file_paths": "MODELO_PREVIA_HELPS.xlsx" },
+  { "id": 24, "name": "Imobiliário", "file_paths": "MODELO_PREVIA_IMOBILIARIO.xlsx" },
+  { "id": 25, "name": "Investimentos", "file_paths": "MODELO_PREVIA_INVESTIMENTOS.xlsx" },
+  { "id": 26, "name": "Riscos Operacionais", "file_paths": "MODELO_PREVIA_RISCOS_OPERACIONAIS.xlsx" },
+  { "id": 27, "name": "Seguros", "file_paths": "MODELO_PREVIA_SEGUROS.xlsx" },
+  { "id": 28, "name": "Tarifas PF", "file_paths": "MODELO_PREVIA_TARIFAS_PF.xlsx" },
+  { "id": 29, "name": "Tarifas PJ", "file_paths": "MODELO_PREVIA_TARIFAS_PJ.xlsx" },
+  { "id": 30, "name": "Universidades", "file_paths": "MODELO_PREVIA_UNIVERSIDADES.xlsx" }
 ]

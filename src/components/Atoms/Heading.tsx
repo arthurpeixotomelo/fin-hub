@@ -15,9 +15,9 @@ export default function Heading(
     const Tag = `h${level}` as const;
     const [container, setContainer] = useState<HTMLElement | null>(null);
 
-    useEffect(() => {
-        setContainer(document.getElementById("header-center"));
-    }, []);
+    // useEffect(() => {
+    //     setContainer(document.getElementById("header-center"));
+    // }, []);
 
     const baseClass = className ? className + " " : "";
     const portalClass = container ? headerStyles.headerCenterContent : "";

@@ -1,366 +1,242 @@
-import DataTable from "../DataTable.tsx";
-import { useQuery } from "@tanstack/react-query";
-import type { ChangeEvent, DragEvent, ReactNode } from "react";
-import { useState, useEffect } from "react";
-import { formatFileSize } from "../../utils/helper.ts";
-import { Dialog, Progress } from "radix-ui";
-import Button from "../Atoms/Button.tsx";
-import styles from "@styles/UploadFlow.module.css";
-import { useUploadStore } from "@stores/upload.ts";
-import { useTeamStore } from "@stores/team.ts";
-import type { ErrorSeverity } from "@utils/errors";
+import DataTable from "../DataTable.tsx"
+import { useQuery } from "@tanstack/react-query"
+import type { ChangeEvent, ReactNode } from "react"
+import { formatFileSize } from "@utils/helper.ts"
+import { Dialog, Progress } from "radix-ui"
+import Button from "../Atoms/Button.tsx"
+import styles from "@styles/UploadFlow.module.css"
+import { useUploadStore } from "@stores/upload.ts"
+import { useTeamStore } from "@stores/team.ts"
+import type { ErrorSeverity } from "@utils/errors"
+import { useShallow } from "zustand/shallow"
+import Heading from "@components/Atoms/Heading.tsx"
 
 export default function UploadFlow(): ReactNode {
-    const fileName = useUploadStore((s) => s.fileName);
-    const status = useUploadStore((s) => s.status);
-    const uploadError = useUploadStore((s) => s.error);
-    const errorSeverity = useUploadStore((s) => s.errorSeverity);
-    const setProgress = useUploadStore((s) => s.setProgress);
-    const jobId = useUploadStore((s) => s.jobId);
-    const teams = useTeamStore((s) => s.teams);
-    const currentTeamId = useTeamStore((s) => s.currentTeamId);
-    const setTeam = useTeamStore((s) => s.setTeam);
-    const teamStatus = useTeamStore((s) => s.status);
-    const fetchTeams = useTeamStore((s) => s.fetchTeams);
-    const effectiveTeam = teams.find((t) => t.id === currentTeamId)?.name ?? "";
+  const { fileName, status } = useUploadStore(useShallow(s => ({
+    fileName: s.fileName,
+    status: s.status
+  })))
+  const hasError = status === "error"
 
-    console.log('[UploadFlow] RENDER - teamStatus:', teamStatus, 'teams:', teams.length, 'currentTeamId:', currentTeamId, 'uploadStatus:', status);
+  const parquetQuery = useQuery({
+    queryKey: ["parquet-data", fileName],
+    enabled: !!fileName,
+    queryFn: async () => {
+      if (!fileName) return []
+      const res = await fetch(
+        `${import.meta.env.BASE_URL}/api/data/temp/${encodeURIComponent(fileName)}`
+      )
+      if (!res.ok) throw new Error("Failed to fetch data")
+      return await res.json() as Record<string, unknown>[]
+    }
+  })
 
-    // Fetch teams on mount if needed
-    // useEffect(() => {
-    //     console.log('[UploadFlow] Effect 1 - checking teamStatus:', teamStatus, 'teams.length:', teams.length);
-    //     if (teamStatus === "idle" || (teams.length === 0 && teamStatus !== "loading")) {
-    //         console.log('[UploadFlow] Triggering fetchTeams...');
-    //         fetchTeams();
-    //     }
-    // }, [teamStatus, teams.length, fetchTeams]);
-
-    // Ensure a team is selected once teams are available
-    // useEffect(() => {
-    //     console.log('[UploadFlow] Effect 2 - teams:', teams.length, 'currentTeamId:', currentTeamId);
-    //     if (teams.length > 0 && currentTeamId == null) {
-    //         console.log('[UploadFlow] Auto-selecting first team:', teams[0].id);
-    //         setTeam(teams[0].id);
-    //     }
-    // }, [teams, currentTeamId, setTeam]);
-
-    const parquetQuery = useQuery({
-        queryKey: ["parquet-data", fileName],
-        enabled: !!fileName,
-        queryFn: async () => {
-            if (!fileName) return [];
-            const res = await fetch(
-                `${import.meta.env.BASE_URL}/api/data/temp/${
-                    encodeURIComponent(fileName)
-                }`,
-            );
-            if (!res.ok) throw new Error("Failed to fetch data");
-            return await res.json() as Record<string, unknown>[];
-        },
-    });
-
-    // Progress polling
-    useQuery<
-        {
-            progress: number;
-            status: "idle" | "processing" | "done" | "error";
-            error?: string;
-            errorSeverity?: ErrorSeverity;
-        }
-    >({
-        queryKey: ["upload-progress", jobId],
-        enabled: !!jobId,
-        refetchInterval: (query) => {
-            const val = query.state.data;
-            return val?.status === "processing" ? 250 : false;
-        },
-        queryFn: async () => {
-            if (!jobId) return { progress: 0, status: "idle" as const };
-            const r = await fetch(`/api/upload/progress/${jobId}`);
-            if (!r.ok) throw new Error("Failed to fetch progress");
-            const data = await r.json() as {
-                progress: number;
-                status: "idle" | "processing" | "done" | "error";
-                error?: string;
-                errorSeverity?: ErrorSeverity;
-            };
-            setProgress(data);
-            return data;
-        },
-    });
-
-    return (
-        <div className={styles.uploadFlowRoot}>
-            <section className={styles.uploadSection}>
-                <FileInput />
-                <ProgressBar />
-                {fileName && (
-                    <DataTable
-                        rows={parquetQuery.data || []}
-                        loading={parquetQuery.isLoading}
-                        error={parquetQuery.error}
-                    />
-                )}
-                <Actions teamName={effectiveTeam} teamId={currentTeamId ?? null} />
-                {status === "error" && uploadError && (
-                    <ErrorModal errorMessage={uploadError} severity={errorSeverity ?? 'critical'} />
-                )}
-            </section>
-        </div>
-    );
+  return (
+    <section className={styles.uploadFlow}>
+      <FileInput />
+      {status === "processing" && <ProgressBar />}
+      {fileName && (
+        <DataTable
+          rows={parquetQuery.data || []}
+          loading={parquetQuery.isLoading}
+          error={parquetQuery.error}
+          pageSize={10}
+        />
+      )}
+      {status !== "idle" && <Actions />}
+      {hasError && <ErrorModal />}
+    </section>
+  )
 }
 
 export function FileInput(): ReactNode {
-    const file = useUploadStore((s) => s.file);
-    const start = useUploadStore((s) => s.start);
-    const isUploading = useUploadStore((s) =>
-        s.status === "processing" && s.progress < 100
-    );
-    const [isDragOver, setIsDragOver] = useState(false);
+  const { file, start, status } = useUploadStore(useShallow(s => ({
+    file: s.file,
+    start: s.start,
+    status: s.status
+  })))
 
-    const isValidXlsx = (f: File) => (
-        f.name.endsWith(".xlsx") &&
-        f.type ===
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
+  const isUploading = status === "processing"
+  const hasFile = !!file
 
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const selected = e.target.files?.[0];
-        if (!selected) return;
-        if (!isValidXlsx(selected)) {
-            alert("Invalid file format. Please select an .xlsx file.");
-            return;
-        }
-        start(selected);
-    };
+  const isValidXlsx = (candidate: File) =>
+    candidate.name.endsWith(".xlsx") &&
+    candidate.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-    const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        if (isUploading || file) return;
-        setIsDragOver(true);
-    };
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0]
+    if (!selected) return
+    if (!isValidXlsx(selected)) {
+      window.alert("Invalid file format. Please select an .xlsx file.")
+      event.target.value = ""
+      return
+    }
+    start(selected)
+    event.target.value = ""
+  }
 
-    const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsDragOver(false);
-    };
+  const title = hasFile ? file.name : "Upload your Excel file"
+  const subtitle = hasFile && file ? formatFileSize(file.size) : "Supported format: .xlsx"
 
-    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        if (isUploading || file) return;
-        const dropped = e.dataTransfer.files?.[0];
-        if (dropped) {
-            if (!isValidXlsx(dropped)) {
-                alert("Invalid file format. Please select an .xlsx file.");
-                return;
-            }
-            start(dropped);
-        }
-    };
-
-    return (
-        <div
-            className={`${styles.uploadArea} ${
-                file ? styles.uploadAreaCompact : ""
-            } ${isDragOver ? styles.uploadAreaActive : ""}`}
-            onClick={() => document.getElementById("fileInput")?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
-            <input
-                id="fileInput"
-                className={styles.hiddenInput}
-                type="file"
-                accept=".xlsx"
-                onChange={handleFileChange}
-                disabled={isUploading || !!file}
-                required
-            />
-            <div className={styles.uploadContent}>
-                {file
-                    ? (
-                        <div className={styles.selectedFileDisplay}>
-                            <div className={styles.selectedFileInfo}>
-                                <p className={styles.selectedFileName}>
-                                    {file.name}
-                                </p>
-                                <p className={styles.selectedFileSize}>
-                                    {formatFileSize(file.size)}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                className={styles.changeFileButton}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const input = document.getElementById(
-                                        "fileInput",
-                                    ) as HTMLInputElement | null;
-                                    if (input) input.value = "";
-                                }}
-                            >
-                                Change File
-                            </button>
-                        </div>
-                    )
-                    : (
-                        <>
-                            <h3 className={styles.uploadTitle}>
-                                Upload your Excel file
-                            </h3>
-                            <p className={styles.uploadDescription}>
-                                Drag & drop or click to browse
-                            </p>
-                            <p className={styles.uploadFormats}>
-                                Supported format: .xlsx
-                            </p>
-                        </>
-                    )}
-            </div>
-        </div>
-    );
+  return (
+    <label
+      className={styles.uploadArea}
+      data-state={hasFile ? "selected" : "empty"}
+      aria-disabled={isUploading}
+    >
+      <input
+        className={styles.hiddenInput}
+        type="file"
+        accept=".xlsx"
+        onChange={handleFileChange}
+        disabled={isUploading}
+        required
+      />
+      <Heading
+        level={2}
+        title={title}
+        className={[
+          styles.uploadTitle,
+          hasFile ? styles.uploadTitleSelected : ""
+        ].filter(Boolean).join(" ")}
+      />
+      <p
+        className={[
+          styles.uploadSubtitle,
+          hasFile ? styles.uploadSubtitleSelected : ""
+        ].filter(Boolean).join(" ")}
+      >
+        {subtitle}
+      </p>
+      {/* <h2 className={styles.uploadTitle}>{title}</h2>
+      <p className={styles.uploadSubtitle}>{subtitle}</p> */}
+    </label>
+  )
 }
 
 export function ProgressBar(): ReactNode {
-    const progress = useUploadStore((s) => s.progress);
-    const status = useUploadStore((s) => s.status);
-    const isProcessing = status === "processing";
+  const { jobId, status, progress, setProgress } = useUploadStore(useShallow(s => ({
+    jobId: s.jobId,
+    status: s.status,
+    progress: s.progress,
+    setProgress: s.setProgress
+  })))
 
-    return (
-        <div className={styles.progressSection} aria-busy={isProcessing}>
-            <div className={styles.progressBar}>
-                <Progress.Root
-                    className={styles.progressRoot}
-                    value={progress}
-                    max={100}
-                >
-                    <Progress.Indicator
-                        className={styles.progressIndicator}
-                        style={{ width: `${progress}%` }}
-                    />
-                </Progress.Root>
-                <p className={styles.progressLabel}>
-                    Stage: {status} • {progress}%
-                </p>
-            </div>
-            <span className={styles.progressText}>{progress}%</span>
-        </div>
-    );
+  useQuery<{
+    progress: number
+    status: "idle" | "processing" | "done" | "error"
+    error?: string
+    errorSeverity?: ErrorSeverity
+  }>({
+    queryKey: ["upload-progress", jobId],
+    enabled: !!jobId && status === "processing",
+    refetchInterval: query => {
+      const current = query.state.data
+      return current?.status === "processing" ? 250 : false
+    },
+    queryFn: async () => {
+      if (!jobId) return { progress: 0, status: "idle" as const }
+      const res = await fetch(
+        `${import.meta.env.BASE_URL}/api/upload/progress/${jobId}`
+      )
+      if (!res.ok) throw new Error(`Failed to fetch progress (${res.status})`)
+      const data = await res.json() as {
+        progress: number
+        status: "idle" | "processing" | "done" | "error"
+        error?: string
+        errorSeverity?: ErrorSeverity
+      }
+      setProgress(data)
+      return data
+    }
+  })
+
+  if (status !== "processing") return null
+
+  return (
+    <section className={styles.progressSection} aria-busy={status === "processing"}>
+      <p className={styles.progressLabel}>Stage: {status} • {progress}%</p>
+      <Progress.Root className={styles.progressRoot} value={progress} max={100}>
+        <Progress.Indicator
+          className={styles.progressIndicator}
+          style={{ width: `${progress}%` }}
+        />
+      </Progress.Root>
+    </section>
+  )
 }
 
-export function Actions({ teamName, teamId }: { teamName: string; teamId: number | null }): ReactNode {
-    const file = useUploadStore((s) => s.file);
-    const status = useUploadStore((s) => s.status);
-    const reset = useUploadStore((s) => s.reset);
-    const finalize = useUploadStore((s) => s.finalize);
-    const isFinalizing = useUploadStore((s) => s.isFinalizing);
-    // Removed team requirement for now - allow submit when processing is done
-    const canSubmit = status === "done"; // && !!teamId;
-    
-    console.log('[Actions] RENDER - status:', status, 'teamId:', teamId, 'canSubmit:', canSubmit, 'file:', !!file);
-    
-    useEffect(() => {
-        console.log('[Actions] Effect - status changed to:', status, 'teamId:', teamId);
-    }, [status, teamId]);
+export function Actions(): ReactNode {
+  const currentTeamId = useTeamStore(s => s.currentTeamId)
+  const { reset, finalize, canSubmit, isSubmitting } = useUploadStore(useShallow(s => ({
+    reset: s.reset,
+    finalize: s.finalize,
+    canSubmit: s.status === "done",
+    isSubmitting: s.status === "submitting"
+  })))
 
-    const handleFinalize = () => {
-        if (canSubmit) finalize(teamId, teamName);
-    };
+  const handleFinalize = () => {
+    if (canSubmit && currentTeamId != null) finalize(currentTeamId)
+  }
 
-    return (
-        <div className={styles.actionButtons}>
-            <Button
-                type="button"
-                variant="outline"
-                disabled={!file}
-                onClick={reset}
-            >
-                Cancel
-            </Button>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <Button
-                    type="button"
-                    variant="primary"
-                    loading={isFinalizing}
-                    disabled={!canSubmit || isFinalizing}
-                    onClick={handleFinalize}
-                    title={!teamId ? 'Select a team first' : undefined}
-                >
-                    {isFinalizing ? "Submitting..." : "Submit"}
-                </Button>
-                {/* Temporarily disabled team requirement message */}
-                {/* {!teamId && status === 'done' && (
-                    <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted, #666)' }}>
-                        Select a team to enable submit
-                    </span>
-                )} */}
-            </div>
-        </div>
-    );
+  if (useUploadStore.getState().status === "idle") return null
+
+  return (
+    <div className={styles.actionButtons}>
+      <Button
+        type="button"
+        variant="outline"
+        disabled={isSubmitting}
+        onClick={reset}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="button"
+        variant="primary"
+        disabled={!canSubmit || isSubmitting}
+        onClick={handleFinalize}
+        title={!currentTeamId ? "Select a team first" : undefined}
+      >
+        {isSubmitting ? "Submitting..." : "Submit"}
+      </Button>
+    </div>
+  )
 }
 
-export function ErrorModal(
-    { errorMessage, severity = 'critical' }: { errorMessage: string; severity?: ErrorSeverity },
-): ReactNode {
-    const reset = useUploadStore((s) => s.reset);
+export function ErrorModal(): ReactNode {
+  const { reset, error, severity } = useUploadStore(useShallow(s => ({
+    reset: s.reset,
+    error: s.error,
+    severity: s.errorSeverity
+  })))
 
-    const severityConfig = {
-        critical: {
-            title: 'Upload Failed',
-            color: '#ef4444',
-            icon: '🚨'
-        },
-        warning: {
-            title: 'Upload Warning',
-            color: '#f59e0b',
-            icon: '⚠️'
-        }
-    };
+  const config = {
+    critical: { title: "Upload Failed", color: "#ef4444", icon: "🚨" },
+    warning: { title: "Upload Warning", color: "#f59e0b", icon: "⚠️" }
+  }[severity ?? "critical"]
 
-    const config = severityConfig[severity];
-
-    return (
-        <Dialog.Root open>
-            <Dialog.Portal>
-                <Dialog.Overlay className={styles.dialogOverlay} />
-                <Dialog.Content className={styles.dialogContent}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '1.5rem' }}>{config.icon}</span>
-                        <Dialog.Title className={styles.dialogTitle} style={{ color: config.color, margin: 0 }}>
-                            {config.title}
-                        </Dialog.Title>
-                    </div>
-                    <Dialog.Description className={styles.dialogDescription}>
-                        The file could not be processed due to the following
-                        {severity === 'critical' ? ' error' : ' issue'}:
-                    </Dialog.Description>
-                    <div 
-                        className={styles.dialogErrorText}
-                        style={{ 
-                            borderLeft: `4px solid ${config.color}`,
-                            paddingLeft: '1rem',
-                            marginTop: '1rem'
-                        }}
-                    >
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                            {errorMessage}
-                        </pre>
-                    </div>
-                    <div className={styles.dialogActions}>
-                        <Dialog.Close asChild>
-                            <button
-                                type="button"
-                                onClick={reset}
-                                className={styles.dialogButton}
-                            >
-                                Try Again
-                            </button>
-                        </Dialog.Close>
-                    </div>
-                </Dialog.Content>
-            </Dialog.Portal>
-        </Dialog.Root>
-    );
+  return (
+    <Dialog.Root open>
+      <Dialog.Portal>
+        <Dialog.Overlay className={styles.dialogOverlay} />
+        <Dialog.Content className={styles.dialogContent}>
+          <header className={styles.dialogHeader} style={{ color: config.color }}>
+            <span className={styles.dialogIcon}>{config.icon}</span>
+            <Dialog.Title className={styles.dialogTitle}>{config.title}</Dialog.Title>
+          </header>
+          <Dialog.Description className={styles.dialogDescription}>
+            The file could not be processed due to the following
+            {severity === "critical" ? " error" : " issue"}:
+          </Dialog.Description>
+          <pre className={styles.dialogErrorText}>{error}</pre>
+          <Dialog.Close asChild>
+            <button type="button" onClick={reset} className={styles.dialogButton}>
+              Try Again
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
 }

@@ -1,8 +1,10 @@
 import { Hono } from "hono";
 import data from "./routes/data";
-import upload from "./routes/upload";
+import upload from "./routes/upload/index.ts";
 import dbQuery from "./routes/dbQuery";
 import { initDb } from "./db/index.ts";
+
+console.log(import.meta.env.SEED_MOCK, typeof import.meta.env.SEED_MOCK);
 
 await initDb(import.meta.env.SEED_MOCK === "true");
 

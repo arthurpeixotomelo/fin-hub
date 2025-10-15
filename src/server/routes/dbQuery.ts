@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { DATABRICKS_CLUSTER_ID } from 'astro:env/server';
-import { ensureClusterRunning, createContext, executeCommand, pollResult } from '../utils/databricks';
+import { ensureClusterRunning, createContext, executeCommand, pollResult } from '../../utils/databricks';
 
 const dbQueryRoute = new Hono();
 

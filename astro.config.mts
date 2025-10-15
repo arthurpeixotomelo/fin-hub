@@ -12,7 +12,7 @@ export default defineConfig({
   base: "/Horion",
   env: {
     schema: {
-      SEED_MOCK: envField.string({
+      SEED_MOCK: envField.boolean({
         context: "server",
         access: "public",
       }),
@@ -37,8 +37,11 @@ export default defineConfig({
   },
   experimental: {
     clientPrerender: true,
+    staticImportMetaEnv: true,
+    contentIntellisense: true
   },
   integrations: [react()],
+  output: "server",
   prefetch: {
     prefetchAll: true,
   },
